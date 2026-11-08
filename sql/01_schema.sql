@@ -191,12 +191,12 @@ CREATE TABLE ROLE_PERMISSION (
     ON DELETE CASCADE,
   CONSTRAINT chk_role_permission
     CHECK (Permission IN (
-      'PLACE_ORDER',
-      'CANCEL_ORDER',
-      'VIEW_ORDER',
-      'MANAGE_CHILD',
-      'MANAGE_WEBHOOK',
-      'MANAGE_ROLE'
+      'MANAGE_ORDERS',
+      'MANAGE_EMPLOYEES',
+      'MANAGE_API_ACCOUNT',
+      'UPDATE_ALL_ORDERS',
+      'UPDATE_OWN_ORDERS',
+      'VIEW_ALL_ORDERS'
     ))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -389,7 +389,8 @@ CREATE TABLE `ORDER` (
       OR CancelledByType IN ('CUSTOMER', 'STAFF', 'SYSTEM')
     ),
   KEY idx_order_status_created (Status, CreatedAt),
-  KEY idx_order_driver_status (DriverID, Status)
+  KEY idx_order_driver_status (DriverID, Status),
+  KEY idx_order_city_status_created (CityID, Status, CreatedAt)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE PATH_POINT (
@@ -490,4 +491,4 @@ CREATE TABLE TRANSACTION (
 
 SET FOREIGN_KEY_CHECKS = 1;
 
-SELECT '01_schema.sql loaded — 23 tables ready for seed / programmability.' AS notice;
+SELECT '01_schema.sql loaded' AS notice;

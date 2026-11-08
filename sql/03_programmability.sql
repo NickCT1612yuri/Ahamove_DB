@@ -110,6 +110,8 @@ END $$
 
 -- -----------------------------------------------------------------------------
 -- §2.3 Query procedures — Track D / Track E
+-- PASTE TRACK_D HERE (replace SearchDetailed stub + add C10 triggers/validate):
+--   docs/track-packs/TRACK_D/02_programmability.sql
 -- -----------------------------------------------------------------------------
 
 DROP PROCEDURE IF EXISTS sp_Order_SearchDetailed $$
@@ -123,7 +125,7 @@ CREATE PROCEDURE sp_Order_SearchDetailed(
   IN p_SortBy VARCHAR(20)
 )
 BEGIN
-  -- TODO Track D: ≥2 tables, WHERE + ORDER BY; linked to §3.2 UI
+  -- TODO Track D: multi-table WHERE + ORDER BY for §3.2 UI
   SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = '[NotImplemented] sp_Order_SearchDetailed body not yet written (Track D).';
 END $$
@@ -173,4 +175,4 @@ END $$
 
 DELIMITER ;
 
-SELECT '03_programmability.sql: stub signatures loaded; replace TODOs per track.' AS notice;
+SELECT '03_programmability.sql loaded' AS notice;

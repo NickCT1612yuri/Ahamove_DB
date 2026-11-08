@@ -1,46 +1,246 @@
 {% extends "base.html" %}
 {% block title %}§3.2 Search — Ahamove A2{% endblock %}
 {% block content %}
+{% macro filter_hiddens() -%}
+  <input type="hidden" name="city_id" value="{{ filters.city_id }}">
+  <input type="hidden" name="status" value="{{ filters.status }}">
+  <input type="hidden" name="payment_method" value="{{ filters.payment_method }}">
+  <input type="hidden" name="customer_phone" value="{{ filters.customer_phone }}">
+  <input type="hidden" name="from_date" value="{{ filters.from_date }}">
+  <input type="hidden" name="to_date" value="{{ filters.to_date }}">
+  <input type="hidden" name="sort_by" value="{{ filters.sort_by }}">
+{%- endmacro %}
+{% macro row_ids(r) -%}
+  <input type="hidden" name="order_id" value="{{ r.OrderID }}">
+  <input type="hidden" name="order_driver_id" value="{{ r.DriverID or '' }}">
+  <input type="hidden" name="order_customer_id" value="{{ r.CustomerID }}">
+{%- endmacro %}
+
 <h1 class="screen-title">§3.2 Order Search</h1>
-<p class="screen-sub">Filters map to <code>sp_Order_SearchDetailed</code> WHERE/ORDER BY params. Inline actions call §2.1 procs (Track D + A).</p>
+<p class="screen-sub">Filters → <code>sp_Order_SearchDetailed</code>. Actions → Track A §2.1 (server-side actors). Footer shows mutation SQL then refresh CALL.</p>
 
 <div class="card-form">
   <form method="post" class="row g-2 align-items-end">
-    <div class="col-md-2"><label class="form-label">City</label><input class="form-control" name="city_id" value="SGN"></div>
-    <div class="col-md-2"><label class="form-label">Status</label><input class="form-control" name="status" placeholder="optional"></div>
-    <div class="col-md-2"><label class="form-label">Payment</label><input class="form-control" name="payment_method" value="BALANCE"></div>
-    <div class="col-md-2"><label class="form-label">Phone keyword</label><input class="form-control" name="customer_phone" value="090"></div>
-    <div class="col-md-2"><label class="form-label">From</label><input class="form-control" type="date" name="from_date" value="2026-10-01"></div>
-    <div class="col-md-2"><label class="form-label">To</label><input class="form-control" type="date" name="to_date" value="2026-11-30"></div>
-    <div class="col-md-3"><label class="form-label">Sort</label>
-      <select class="form-select" name="sort_by">
-        <option value="CREATED_DESC">CREATED_DESC</option>
-        <option value="FEE_DESC" selected>FEE_DESC</option>
-        <option value="DISTANCE_ASC">DISTANCE_ASC</option>
+    <input type="hidden" name="action" value="search">
+    <div class="col-md-2">
+      <label class="form-label" for="flt-city">City</label>
+      <select class="form-select" id="flt-city" name="city_id">
+        <option value="">(any)</option>
+        {% for c in cities %}
+        <option value="{{ c.CityID }}" {% if filters.city_id == c.CityID %}selected{% endif %}>
+          {{ c.CityID }} — {{ c.CityName }}
+        </option>
+        {% else %}
+        <option value="SGN" {% if filters.city_id == 'SGN' %}selected{% endif %}>SGN (seed CITY later)</option>
+        {% endfor %}
       </select>
     </div>
-    <div class="col-md-3"><button class="btn btn-primary w-100" type="submit">Search</button></div>
+    <div class="col-md-2">
+      <label class="form-label" for="flt-status">Status</label>
+      <select class="form-select" id="flt-status" name="status">
+        <option value="">(any)</option>
+        {% for s in statuses %}
+        <option value="{{ s }}" {% if filters.status == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label" for="flt-pay">Payment</label>
+      <select class="form-select" id="flt-pay" name="payment_method">
+        <option value="">(any)</option>
+        {% for p in payments %}
+        <option value="{{ p }}" {% if filters.payment_method == p %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label" for="flt-phone">Phone keyword</label>
+      <input class="form-control" id="flt-phone" name="customer_phone" value="{{ filters.customer_phone }}" placeholder="optional">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label" for="flt-from">From</label>
+      <input class="form-control" type="date" id="flt-from" name="from_date" value="{{ filters.from_date }}">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label" for="flt-to">To</label>
+      <input class="form-control" type="date" id="flt-to" name="to_date" value="{{ filters.to_date }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label" for="flt-sort">Sort</label>
+      <select class="form-select" id="flt-sort" name="sort_by">
+        <option value="CREATED_DESC" {% if filters.sort_by == 'CREATED_DESC' %}selected{% endif %}>CREATED_DESC</option>
+        <option value="FEE_DESC" {% if filters.sort_by == 'FEE_DESC' %}selected{% endif %}>FEE_DESC</option>
+        <option value="DISTANCE_ASC" {% if filters.sort_by == 'DISTANCE_ASC' %}selected{% endif %}>DISTANCE_ASC</option>
+      </select>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button class="btn btn-primary flex-grow-1" type="submit">Search</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('search.search_screen', reset=1) }}">Reset</a>
+    </div>
   </form>
 </div>
 
 <div class="table-responsive">
-  <table class="table table-striped data-table">
+  <table class="table table-striped data-table align-middle">
     <thead>
       <tr>
-        <th>OrderID</th><th>Status</th><th>Customer</th><th>Phone</th>
-        <th>Service</th><th>Driver</th><th>TotalFee</th><th>Actions</th>
+        <th>OrderID</th>
+        <th>Status</th>
+        <th>Customer / Phone</th>
+        <th>Service</th>
+        <th>Payment</th>
+        <th>Dist</th>
+        <th>TotalFee</th>
+        <th>Wdrw</th>
+        <th>CreatedAt</th>
+        <th>Driver</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       {% if rows %}
         {% for r in rows %}
         <tr>
-          <td>{{ r.get('OrderID', r) }}</td>
-          <td colspan="7"><code>{{ r }}</code></td>
+          <td class="fw-bold">#{{ r.OrderID }}</td>
+          <td>
+            <span class="badge {% if r.Status == 'COMPLETED' %}bg-success{% elif r.Status == 'CANCELLED' %}bg-danger{% elif r.Status == 'IDLE' %}bg-secondary{% elif r.Status == 'IN_PROCESS' %}bg-warning text-dark{% else %}bg-primary{% endif %}">
+              {{ r.Status }}
+            </span>
+          </td>
+          <td>{{ r.CustomerName }}<br><small class="text-muted">{{ r.CustomerPhone }}</small></td>
+          <td><span class="badge bg-light text-dark border">{{ r.CityID }}-{{ r.GroupCode }}</span> {{ r.SvcName }}</td>
+          <td><small>{{ r.PaymentMethod }}</small></td>
+          <td>{{ r.Distance }}</td>
+          <td class="text-end">{{ "{:,}".format(r.TotalFee|int) if r.TotalFee is not none else r.TotalFee }}</td>
+          <td class="text-center">{{ r.WithdrawCount }}/5</td>
+          <td><small>{{ r.CreatedAt }}</small></td>
+          <td>{{ r.DriverName or '—' }}</td>
+          <td>
+            <div class="d-flex flex-wrap gap-1">
+              <form method="post" class="d-inline">
+                <input type="hidden" name="action" value="assign">
+                {{ row_ids(r) }}{{ filter_hiddens() }}
+                <button class="btn btn-sm btn-outline-success" type="submit" title="ASSIGN_DRIVER as Driver 6">Assign</button>
+              </form>
+              <form method="post" class="d-inline">
+                <input type="hidden" name="action" value="withdraw">
+                {{ row_ids(r) }}{{ filter_hiddens() }}
+                <button class="btn btn-sm btn-outline-warning" type="submit">Withdraw</button>
+              </form>
+              <form method="post" class="d-inline">
+                <input type="hidden" name="action" value="start">
+                {{ row_ids(r) }}{{ filter_hiddens() }}
+                <button class="btn btn-sm btn-outline-primary" type="submit" title="START_TRIP">Start</button>
+              </form>
+              <form method="post" class="d-inline">
+                <input type="hidden" name="action" value="complete">
+                {{ row_ids(r) }}{{ filter_hiddens() }}
+                <button class="btn btn-sm btn-outline-primary" type="submit" title="COMPLETE_ORDER">Complete</button>
+              </form>
+              <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="modal" data-bs-target="#cancelModal{{ r.OrderID }}">Cancel</button>
+              <button class="btn btn-sm btn-outline-dark" type="button" data-bs-toggle="modal" data-bs-target="#cancel12Modal{{ r.OrderID }}">Cancel as 12</button>
+              <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#rateModal{{ r.OrderID }}">Rate</button>
+              <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#deleteModal{{ r.OrderID }}">Delete</button>
+            </div>
+
+            <div class="modal fade" id="cancelModal{{ r.OrderID }}" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog">
+                <form method="post" class="modal-content">
+                  <input type="hidden" name="action" value="cancel">
+                  {{ row_ids(r) }}{{ filter_hiddens() }}
+                  <div class="modal-header">
+                    <h5 class="modal-title">Cancel order #{{ r.OrderID }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p class="small text-muted mb-2">Actor: staff <strong>11</strong> (CANCEL_ORDER).</p>
+                    <label class="form-label" for="cr{{ r.OrderID }}">Reason</label>
+                    <input class="form-control" id="cr{{ r.OrderID }}" name="cancel_reason" value="Staff cancel from §3.2 list" required>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Back</button>
+                    <button type="submit" class="btn btn-danger">Confirm cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div class="modal fade" id="cancel12Modal{{ r.OrderID }}" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog">
+                <form method="post" class="modal-content">
+                  <input type="hidden" name="action" value="cancel_denied">
+                  {{ row_ids(r) }}{{ filter_hiddens() }}
+                  <div class="modal-header">
+                    <h5 class="modal-title">Cancel as staff 12 — #{{ r.OrderID }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p class="small text-muted mb-2">Expects C12 permission SIGNAL.</p>
+                    <label class="form-label" for="cr12{{ r.OrderID }}">Reason</label>
+                    <input class="form-control" id="cr12{{ r.OrderID }}" name="cancel_reason" value="C12 negative: staff 12 lacks CANCEL_ORDER">
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Back</button>
+                    <button type="submit" class="btn btn-dark">Try cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div class="modal fade" id="rateModal{{ r.OrderID }}" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog">
+                <form method="post" class="modal-content">
+                  <input type="hidden" name="action" value="rate">
+                  {{ row_ids(r) }}{{ filter_hiddens() }}
+                  <div class="modal-header">
+                    <h5 class="modal-title">Rate order #{{ r.OrderID }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p class="small text-muted mb-2">Actor: customer #{{ r.CustomerID }}. Action <code>RATE_ORDER</code>.</p>
+                    <label class="form-label" for="stars{{ r.OrderID }}">Stars (1–5)</label>
+                    <select class="form-select mb-2" id="stars{{ r.OrderID }}" name="rating_stars" required>
+                      {% for n in range(1, 6) %}
+                      <option value="{{ n }}" {% if n == 5 %}selected{% endif %}>{{ n }}</option>
+                      {% endfor %}
+                    </select>
+                    <label class="form-label" for="cmt{{ r.OrderID }}">Comment</label>
+                    <input class="form-control" id="cmt{{ r.OrderID }}" name="rating_comment" placeholder="optional">
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Back</button>
+                    <button type="submit" class="btn btn-info">Submit rating</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div class="modal fade" id="deleteModal{{ r.OrderID }}" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog">
+                <form method="post" class="modal-content">
+                  <input type="hidden" name="action" value="delete">
+                  {{ row_ids(r) }}{{ filter_hiddens() }}
+                  <div class="modal-header">
+                    <h5 class="modal-title">Hard-delete order #{{ r.OrderID }}?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p class="mb-0">Calls <code>sp_Order_Delete</code> as customer <strong>1</strong>.</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Back</button>
+                    <button type="submit" class="btn btn-secondary">Confirm delete</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </td>
         </tr>
         {% endfor %}
       {% else %}
-        <tr><td colspan="8" class="text-muted">No rows yet — implement procedure + seed, then search.</td></tr>
+        <tr>
+          <td colspan="11" class="text-muted">No rows — use Reset or load CITY/SERVICE/ORDER seed. Check Last SQL footer.</td>
+        </tr>
       {% endif %}
     </tbody>
   </table>
