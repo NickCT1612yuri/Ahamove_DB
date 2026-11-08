@@ -8,6 +8,7 @@ USE ahamove_a2;
 -- -----------------------------------------------------------------------------
 -- ID CONTRACT (do not collide)
 --   AccountID  1–5   = Customers
+--   AccountID  16    = Extra customer (partner Integration)
 --   AccountID  6–10  = Drivers
 --              6 = verified ONLINE happy path
 --              7 = BUSY (active order) — fails C8 single-order
@@ -25,10 +26,34 @@ USE ahamove_a2;
 --     108 reserved / CANCELLED as needed
 -- -----------------------------------------------------------------------------
 
--- TODO Track B: ACCOUNT, CUSTOMER, TRANSACTION, SPECIAL_REQUEST, ORDER_REQUEST
--- TODO Track C: OWNER, DRIVER, VEHICLE, VEHICLE_DOC, OPERATION
--- TODO Track D: STAFF, STAFF_PERMISSION, PARTNER, PARTNER_ROLE, ROLE_PERMISSION
--- TODO Track E: CITY, SERVICE, SERVICE_REQUEST
--- TODO Track A: `ORDER`, PROMOTION, PATH_POINT, ORDER_ITEM, PROOF_PHOTO
+-- =============================================================================
+-- PASTE TRACK_B HERE: SPECIAL_REQUEST, ACCOUNT, CUSTOMER
+-- docs/track-packs/TRACK_B/01_seed_fragment.sql
+-- =============================================================================
 
-SELECT '02_seed.sql: insert ≥5 rows per table using the ID contract above.' AS notice;
+-- =============================================================================
+-- PASTE TRACK_E HERE: CITY, SERVICE, SERVICE_REQUEST
+-- docs/track-packs/TRACK_E/01_seed_fragment.sql
+-- =============================================================================
+
+-- =============================================================================
+-- PASTE TRACK_C HERE: OWNER, DRIVER, VEHICLE, VEHICLE_DOC, OPERATION
+-- docs/track-packs/TRACK_C/01_seed_fragment.sql
+-- =============================================================================
+
+-- =============================================================================
+-- PASTE TRACK_A HERE: PROMOTION, ORDER 101–108, PATH_POINT, …
+-- docs/track-packs/TRACK_A/01_seed_fragment.sql
+-- =============================================================================
+
+-- =============================================================================
+-- PASTE TRACK_B HERE: TRANSACTION, ORDER_REQUEST
+-- docs/track-packs/TRACK_B/01_seed_fragment.sql
+-- =============================================================================
+
+-- =============================================================================
+-- PASTE TRACK_D HERE: STAFF, STAFF_PERMISSION, PARTNER, PARTNER_ROLE, ROLE_PERMISSION
+-- docs/track-packs/TRACK_D/01_seed_fragment.sql
+-- =============================================================================
+
+SELECT '02_seed.sql loaded' AS notice;
