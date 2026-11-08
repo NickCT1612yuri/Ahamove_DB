@@ -1,0 +1,37 @@
+# Environment / secrets
+.env
+.env.local
+*.pem
+*.key
+
+# Python
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Flask / local runtime
+instance/
+*.log
+
+# MySQL local dumps / backups
+*.sql.bak
+*.dump
+*.bak
+*.sql.gz
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~

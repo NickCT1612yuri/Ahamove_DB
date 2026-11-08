@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}§3.3 Analytics — Ahamove A2{% endblock %}
+{% block content %}
+<h1 class="screen-title">§3.3 Service Analytics &amp; Function Tester</h1>
+<p class="screen-sub">Top: <code>sp_Service_RevenueAndDriverKPI</code>. Bottom: cursor functions (Track E / C).</p>
+
+<div class="card-form">
+  <h2 class="h5">Service KPIs</h2>
+  <form method="post" class="row g-2 align-items-end">
+    <input type="hidden" name="panel" value="kpi">
+    <div class="col-md-2"><label class="form-label">City</label><input class="form-control" name="city_id" value="SGN"></div>
+    <div class="col-md-2"><label class="form-label">Start</label><input class="form-control" type="date" name="start_date" value="2026-10-01"></div>
+    <div class="col-md-2"><label class="form-label">End</label><input class="form-control" type="date" name="end_date" value="2026-11-30"></div>
+    <div class="col-md-2"><label class="form-label">Min orders (HAVING)</label><input class="form-control" name="min_completed_orders" value="2"></div>
+    <div class="col-md-2"><label class="form-label">Min revenue (HAVING)</label><input class="form-control" name="min_gross_revenue" value="100000"></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Run KPI</button></div>
+  </form>
+  <div class="table-responsive mt-3">
+    <table class="table table-sm data-table">
+      <thead><tr><th>Result</th></tr></thead>
+      <tbody>
+        {% if kpi_rows %}
+          {% for r in kpi_rows %}<tr><td><code>{{ r }}</code></td></tr>{% endfor %}
+        {% else %}
+          <tr><td class="text-muted">No KPI rows yet.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card-form">
+      <h2 class="h5">Driver settlement → <code>fn_CalculateDriverNetSettlement</code></h2>
+      <form method="post" class="row g-2">
+        <input type="hidden" name="panel" value="settlement">
+        <div class="col-4"><label class="form-label">DriverID</label><input class="form-control" name="driver_id" value="6"></div>
+        <div class="col-4"><label class="form-label">Start</label><input class="form-control" name="start_datetime" value="2026-10-01 00:00:00"></div>
+        <div class="col-4"><label class="form-label">End</label><input class="form-control" name="end_datetime" value="2026-11-30 23:59:59"></div>
+        <div class="col-12"><button class="btn btn-success" type="submit">Evaluate</button></div>
+      </form>
+      {% if settlement %}<p class="mt-3 mb-0"><strong>Result:</strong> {{ settlement }}</p>{% endif %}
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card-form">
+      <h2 class="h5">Fleet compliance → <code>fn_EvaluateFleetCompliance</code></h2>
+      <form method="post" class="row g-2">
+        <input type="hidden" name="panel" value="fleet">
+        <div class="col-6"><label class="form-label">OwnerID</label><input class="form-control" name="owner_id" value="1"></div>
+        <div class="col-6"><label class="form-label">Reference date</label><input class="form-control" type="date" name="reference_date" value="2026-11-05"></div>
+        <div class="col-12"><button class="btn btn-success" type="submit">Evaluate</button></div>
+      </form>
+      {% if fleet %}<p class="mt-3 mb-0"><strong>Result:</strong> {{ fleet }}</p>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

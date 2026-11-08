@@ -1,0 +1,117 @@
+Ahamove A2 — Oral Defense Cheat Sheet
+=======================================
+Owners TBD until tracks are assigned. Each member fills their block before rehearsal.
+
+Convention: custom errors use
+  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '[RuleCode] Specific explanation...';
+
+==============================================================================
+TRACK A — §2.1 ORDER CRUD + §3.1 UI
+Owner: TBD
+------------------------------------------------------------------------------
+Objects:
+  sp_Order_Create
+  sp_Order_UpdateLifecycle
+  sp_Order_Delete
+
+Business rules (cite C#):
+  Create: C1 stops, C3 payment/wallet, C4 fee snapshot, C6 schedule, C13 promo
+  Update: C6 lifecycle path, C7 withdraw/cancel/refund, C9 rating, C12 staff perm
+  Delete: only IDLE/ASSIGNING drafts; never active/completed/cancelled history
+
+DML involved:
+  INSERT/UPDATE/DELETE on `ORDER`, PATH_POINT, TRANSACTION (payment/refund)
+
+Why not a simple DDL CHECK:
+  Cross-table wallet/promo/lifecycle rules need queries and multi-statement txns;
+  CHECKs cannot look up SERVICE fees, Balance, or staff permissions.
+
+Demo talking points:
+  Happy create → WalletError / PromoError → delete draft vs delete COMPLETED
+
+==============================================================================
+TRACK B — §2.2.2 Derived fee → wallet balance
+Owner: TBD
+------------------------------------------------------------------------------
+Objects:
+  trg_OrderReq_SyncFee (Attribute B: RequestFee / TotalFee)
+  trg_Txn_AfterChange_SyncBalance (Attribute A: CUSTOMER/DRIVER.Balance)
+
+Business rules (cite C#):
+  C4 TotalFee = DistanceFee + StopFee + RequestFee - Discount (>= 0)
+  C11 Balance = SUM(TRANSACTION.Amount); Balance >= -CreditLimit
+
+DML that fires triggers:
+  INSERT/UPDATE/DELETE ORDER_REQUEST
+  INSERT/UPDATE/DELETE TRANSACTION (and BALANCE payment amount adjustments)
+
+Why not a simple DDL CHECK:
+  Derived totals depend on joined SERVICE_REQUEST prices and summed ledger rows;
+  Attribute B must be computed before Attribute A (assignment note).
+
+Demo talking points:
+  Before/after SELECT on Order 102 + Customer Balance after INSERT ORDER_REQUEST
+
+==============================================================================
+TRACK C — §2.2.1 C8 eligibility + §2.4.2 fleet function
+Owner: TBD
+------------------------------------------------------------------------------
+Objects:
+  trg_Order_BeforeUpdate_DriverEligibility (+ BEFORE INSERT companion)
+  fn_EvaluateFleetCompliance(p_OwnerID, p_ReferenceDate)
+
+Business rules (cite C#):
+  C8: ACTIVE account, verified, ONLINE, one busy order, ACTIVE OPERATION,
+      vehicle type/capacity, no expired VEHICLE_DOC
+  C9: AlertLevel tiers by days-to-expiry (REMINDER/ALARM/URGENT)
+
+DML that can violate C8:
+  UPDATE/INSERT `ORDER` setting DriverID / Status=ACCEPTED
+  UPDATE OPERATION changing PlateNumber while ACTIVE
+
+Why not a simple DDL CHECK:
+  Eligibility spans ACCOUNT, DRIVER, OPERATION, VEHICLE, VEHICLE_DOC, SERVICE;
+  CHECKs are single-table only.
+
+Demo talking points:
+  Assign Driver 9 (expired doc) fails; Driver 6 succeeds; fleet cursor summary
+
+==============================================================================
+TRACK D — §2.3.1 search proc + §3.2 UI
+Owner: TBD
+------------------------------------------------------------------------------
+Objects:
+  sp_Order_SearchDetailed
+  §3.2 list UI (filters → WHERE params; actions → Track A procs)
+
+Business rules / query shape:
+  Joins ≥2 tables (`ORDER`, CUSTOMER, ACCOUNT, SERVICE, CITY, driver ACCOUNT)
+  WHERE on city/status/payment/phone/date; ORDER BY sort key from UI
+
+DML from list actions:
+  Calls sp_Order_UpdateLifecycle / sp_Order_Delete (no raw UPDATE/DELETE in app)
+
+Why this is not a “thin” duplicate proc:
+  Multi-table detail list with dynamic sort + presentation filters (not list-by-id only)
+
+Demo talking points:
+  Show form boxes map 1:1 to procedure params; flash SIGNAL text on bad cancel
+
+==============================================================================
+TRACK E — §2.3.2 KPI + §2.4.1 settlement + §3.3 UI
+Owner: TBD
+------------------------------------------------------------------------------
+Objects:
+  sp_Service_RevenueAndDriverKPI
+  fn_CalculateDriverNetSettlement(p_DriverID, p_StartDate, p_EndDate)
+  §3.3 analytics / function tester screen
+
+Business rules (cite C#):
+  KPI: aggregates + GROUP BY + HAVING (min orders / min revenue) + ORDER BY
+  Settlement: C4 commission/earning; C11 COD remittance via cursor LOOP/IF
+
+Why not a simple DDL CHECK / single SELECT:
+  Rubric requires query proc with HAVING and a cursor function with validation
+
+Demo talking points:
+  Run KPI with HAVING boxes; show settlement string; invalid DriverID message

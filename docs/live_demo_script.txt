@@ -1,0 +1,47 @@
+Ahamove A2 — Live Demo Script
+================================
+Fill Speakers after track owners are assigned. Keep this file in git (not Drive).
+
+----------------------------------------------------------------------
+0. SETUP (before graders arrive)
+----------------------------------------------------------------------
+- Laptop used for demo: ____________________
+- Backup laptop (if Wi-Fi fails): ____________
+- Who resets DB: ____________________________
+- Reset commands (from A2/ repo root):
+
+    mysql -u root -p -e "DROP DATABASE IF EXISTS ahamove_a2; CREATE DATABASE ahamove_a2 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+    mysql -u root -p ahamove_a2 < sql/01_schema.sql
+    mysql -u root -p ahamove_a2 < sql/02_seed.sql
+    mysql -u root -p ahamove_a2 < sql/03_programmability.sql
+
+- Start app:  source venv/bin/activate && cd app && python run.py
+- Open:       http://127.0.0.1:5000
+- Optional:   SHOW TABLES / row-count query ready in Workbench
+
+----------------------------------------------------------------------
+1. DEMO FLOW (speak in this order)
+----------------------------------------------------------------------
+Step | Speaker | Screen | Button / input                         | SQL object fired                         | Expected result / error
+-----+---------+--------+----------------------------------------+------------------------------------------+------------------------------------------
+1    | TBD     | §3.1   | Create order (BALANCE + promo AHA50)   | sp_Order_Create                          | New order; fees snapshotted; payment txn
+2    | TBD     | §3.1   | Create with expired promo / low wallet | sp_Order_Create                          | SIGNAL [C13_Promo] or [C3_Wallet]
+3    | TBD     | §3.1   | Hard-delete draft Order 101            | sp_Order_Delete                          | Draft removed (PATH_POINT cascade)
+4    | TBD     | §3.1   | Delete completed Order 105             | sp_Order_Delete                          | DeleteBlocked (audit protection)
+5    | TBD     | §3.1   | Assign Driver 9 to Order 102           | trg_Order_*_DriverEligibility (C8)       | C8_EligibilityError (expired doc)
+6    | TBD     | §3.1   | Assign Driver 6 to Order 102           | same trigger                             | Status=ACCEPTED; AcceptedAt set
+7    | TBD     | §3.1   | WITHDRAW_DRIVER on Order 103 (count 4) | sp_Order_UpdateLifecycle                 | WithdrawCount=5 → SYSTEM cancel + refund
+8    | TBD     | §3.1   | Insert ORDER_REQUEST LOADING qty 2     | trg_OrderReq_SyncFee → Balance sync      | RequestFee/TotalFee up; Balance down
+9    | TBD     | §3.1   | Show Before/After inspector            | SELECT TotalFee / CUSTOMER.Balance       | Values match trigger chain
+10   | TBD     | §3.2   | Search SGN / BALANCE / phone 090       | sp_Order_SearchDetailed                  | Sorted list; filters from form boxes
+11   | TBD     | §3.2   | Inline Cancel / Delete from list       | sp_Order_UpdateLifecycle / Delete        | Friendly SIGNAL text in alert
+12   | TBD     | §3.3   | Run KPI (SGN, HAVING mins)             | sp_Service_RevenueAndDriverKPI           | Aggregated rows by service
+13   | TBD     | §3.3   | Driver settlement DriverID=6           | fn_CalculateDriverNetSettlement          | Summary string with cursor totals
+14   | TBD     | §3.3   | Fleet compliance OwnerID=…             | fn_EvaluateFleetCompliance               | Alert tiers + readiness summary
+15   | TBD     | any    | Footer "Last SQL"                      | (debug)                                  | Shows exact CALL / SELECT just run
+
+----------------------------------------------------------------------
+2. CLOSING Q&A HANDOFF
+----------------------------------------------------------------------
+- Point graders at docs/oral_defense_cheat_sheet.txt
+- Each member explains THEIR owned Section 2 object (and one teammate's)

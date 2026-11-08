@@ -1,0 +1,53 @@
+:root {
+  --bg: #f6f8fb;
+  --ink: #1a2332;
+  --accent: #0b6e4f;
+  --muted: #5b6b7c;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.nav-link.active {
+  font-weight: 600;
+}
+
+.screen-title {
+  margin: 1.25rem 0 0.5rem;
+}
+
+.screen-sub {
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+}
+
+.sql-footer {
+  position: sticky;
+  bottom: 0;
+  background: #12202f;
+  color: #d7e6f5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+  padding: 0.65rem 1rem;
+  border-top: 3px solid var(--accent);
+}
+
+.card-form {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+
+table.data-table th {
+  white-space: nowrap;
+}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}§3.2 Search — Ahamove A2{% endblock %}
+{% block content %}
+<h1 class="screen-title">§3.2 Order Search</h1>
+<p class="screen-sub">Filters map to <code>sp_Order_SearchDetailed</code> WHERE/ORDER BY params. Inline actions call §2.1 procs (Track D + A).</p>
+
+<div class="card-form">
+  <form method="post" class="row g-2 align-items-end">
+    <div class="col-md-2"><label class="form-label">City</label><input class="form-control" name="city_id" value="SGN"></div>
+    <div class="col-md-2"><label class="form-label">Status</label><input class="form-control" name="status" placeholder="optional"></div>
+    <div class="col-md-2"><label class="form-label">Payment</label><input class="form-control" name="payment_method" value="BALANCE"></div>
+    <div class="col-md-2"><label class="form-label">Phone keyword</label><input class="form-control" name="customer_phone" value="090"></div>
+    <div class="col-md-2"><label class="form-label">From</label><input class="form-control" type="date" name="from_date" value="2026-10-01"></div>
+    <div class="col-md-2"><label class="form-label">To</label><input class="form-control" type="date" name="to_date" value="2026-11-30"></div>
+    <div class="col-md-3"><label class="form-label">Sort</label>
+      <select class="form-select" name="sort_by">
+        <option value="CREATED_DESC">CREATED_DESC</option>
+        <option value="FEE_DESC" selected>FEE_DESC</option>
+        <option value="DISTANCE_ASC">DISTANCE_ASC</option>
+      </select>
+    </div>
+    <div class="col-md-3"><button class="btn btn-primary w-100" type="submit">Search</button></div>
+  </form>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped data-table">
+    <thead>
+      <tr>
+        <th>OrderID</th><th>Status</th><th>Customer</th><th>Phone</th>
+        <th>Service</th><th>Driver</th><th>TotalFee</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if rows %}
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.get('OrderID', r) }}</td>
+          <td colspan="7"><code>{{ r }}</code></td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="8" class="text-muted">No rows yet — implement procedure + seed, then search.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

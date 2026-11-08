@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}§3.1 Orders — Ahamove A2{% endblock %}
+{% block content %}
+<h1 class="screen-title">§3.1 Order Booking &amp; Lifecycle</h1>
+<p class="screen-sub">All writes call §2.1 procedures only. Track A fills forms; Track B adds Balance/TotalFee inspector.</p>
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="card-form">
+      <h2 class="h5">Create order → <code>sp_Order_Create</code></h2>
+      <form method="post">
+        <input type="hidden" name="action" value="create">
+        <div class="row g-2">
+          <div class="col-4"><label class="form-label">CustomerID</label><input class="form-control" name="customer_id" value="1"></div>
+          <div class="col-4"><label class="form-label">CityID</label><input class="form-control" name="city_id" value="SGN"></div>
+          <div class="col-4"><label class="form-label">GroupCode</label><input class="form-control" name="group_code" value="BIKE"></div>
+          <div class="col-6"><label class="form-label">Payment</label>
+            <select class="form-select" name="payment_method">
+              <option>BALANCE</option><option>CASH</option><option>CASH_BY_RECIPIENT</option>
+            </select>
+          </div>
+          <div class="col-3"><label class="form-label">Distance</label><input class="form-control" name="distance" value="6.5"></div>
+          <div class="col-3"><label class="form-label">Weight</label><input class="form-control" name="weight" value="5"></div>
+          <div class="col-4"><label class="form-label">Dropoffs</label><input class="form-control" name="dropoff_count" value="1"></div>
+          <div class="col-8"><label class="form-label">Promo</label><input class="form-control" name="promo_code" value="AHA50"></div>
+          <div class="col-12"><label class="form-label">Pickup address</label><input class="form-control" name="pickup_address" value="268 Ly Thuong Kiet Q10"></div>
+          <div class="col-6"><label class="form-label">Pickup name</label><input class="form-control" name="pickup_contact_name" value="Minh Nhat"></div>
+          <div class="col-6"><label class="form-label">Pickup mobile</label><input class="form-control" name="pickup_contact_mobile" value="0901000001"></div>
+          <div class="col-12"><label class="form-label">Drop address</label><input class="form-control" name="drop_address" value="01 Vo Van Ngan Thu Duc"></div>
+          <div class="col-4"><label class="form-label">Drop name</label><input class="form-control" name="drop_contact_name" value="The Nhan"></div>
+          <div class="col-4"><label class="form-label">Drop mobile</label><input class="form-control" name="drop_contact_mobile" value="0909111222"></div>
+          <div class="col-4"><label class="form-label">COD</label><input class="form-control" name="drop_cod" value="150000"></div>
+        </div>
+        <button class="btn btn-success mt-3" type="submit">Create</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card-form">
+      <h2 class="h5">Lifecycle → <code>sp_Order_UpdateLifecycle</code></h2>
+      <form method="post" class="mb-3">
+        <input type="hidden" name="action" value="lifecycle">
+        <div class="row g-2">
+          <div class="col-4"><label class="form-label">OrderID</label><input class="form-control" name="order_id" value="103"></div>
+          <div class="col-8"><label class="form-label">ActionType</label>
+            <select class="form-select" name="action_type">
+              <option>ASSIGN_DRIVER</option>
+              <option selected>WITHDRAW_DRIVER</option>
+              <option>START_TRIP</option>
+              <option>COMPLETE_ORDER</option>
+              <option>CANCEL_ORDER</option>
+              <option>RATE_ORDER</option>
+            </select>
+          </div>
+          <div class="col-4"><label class="form-label">ActorAccountID</label><input class="form-control" name="actor_account_id" value="7"></div>
+          <div class="col-8"><label class="form-label">CancelReason</label><input class="form-control" name="cancel_reason"></div>
+          <div class="col-4"><label class="form-label">Stars</label><input class="form-control" name="rating_stars"></div>
+          <div class="col-8"><label class="form-label">Comment</label><input class="form-control" name="rating_comment"></div>
+        </div>
+        <button class="btn btn-primary mt-3" type="submit">Update lifecycle</button>
+      </form>
+
+      <h2 class="h5">Delete draft → <code>sp_Order_Delete</code></h2>
+      <form method="post">
+        <input type="hidden" name="action" value="delete">
+        <div class="row g-2">
+          <div class="col-6"><label class="form-label">OrderID</label><input class="form-control" name="order_id" value="101"></div>
+          <div class="col-6"><label class="form-label">RequestingAccountID</label><input class="form-control" name="requesting_account_id" value="1"></div>
+        </div>
+        <button class="btn btn-outline-danger mt-3" type="submit">Hard delete</button>
+      </form>
+    </div>
+
+    <div class="card-form">
+      <h2 class="h5">Before / After inspector (Track B)</h2>
+      <p class="text-muted mb-0">TODO: show <code>TotalFee</code> and <code>CUSTOMER.Balance</code> before and after ORDER_REQUEST / lifecycle actions.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
